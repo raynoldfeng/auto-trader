@@ -9,47 +9,47 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-
 namespace AutoTrader
 {
+  
     public partial class Form1 : Form
     {
+
+
         CookieContainer m_cookie = new CookieContainer();
+        
+
         public Form1()
         {
             InitializeComponent();
+          
             this.Browser.Navigate("https://etrade.newone.com.cn/newtrade/index.jsp");
         }
-
-        private string HttpPost(string Url, string postDataStr)
+        protected override void WndProc(ref Message msg)
         {
-            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(Url);
-            request.Method = "POST";
-            request.ContentType = "application/x-www-form-urlencoded";
-            request.ContentLength = Encoding.UTF8.GetByteCount(postDataStr);
-            request.CookieContainer = m_cookie;
-            Stream myRequestStream = request.GetRequestStream();
-            StreamWriter myStreamWriter = new StreamWriter(myRequestStream, Encoding.GetEncoding("gb2312"));
-            myStreamWriter.Write(postDataStr);
-            myStreamWriter.Close();
+            if (msg.Msg == 0x888)
+            {
+                try
+                {
+                    HtmlElement menu = Browser.Document.GetElementById("botrigy");
+                    HtmlElement title = Browser.Document.GetElementById("jy_title");
+                    if (menu != null)
+                    {
+                        menu.Children[0].Children[0].InvokeMember("click");
+                    }
+                }
+                catch (Exception e)
+                {
 
-            HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-
-            response.Cookies = m_cookie.GetCookies(response.ResponseUri);
-            Stream myResponseStream = response.GetResponseStream();
-            StreamReader myStreamReader = new StreamReader(myResponseStream, Encoding.GetEncoding("utf-8"));
-            string retString = myStreamReader.ReadToEnd();
-            myStreamReader.Close();
-            myResponseStream.Close();
-
-            return retString;
+                }
+            }
+            base.WndProc(ref msg);
         }
 
         private void Browser_DocumentCompleted(object sender, WebBrowserDocumentCompletedEventArgs e)
         {
             ((WebBrowser)sender).Document.Window.Error += new HtmlElementErrorEventHandler(Window_Error);
         }
-
         private void Window_Error(object sender, HtmlElementErrorEventArgs e)
         {
             // Ignore the error and suppress the error dialog box.   
